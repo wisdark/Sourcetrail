@@ -1,8 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
 
+if (WIN32 AND (CMAKE_GENERATOR STREQUAL "Ninja"))
+	set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
+endif()
 set(BUILD_CXX_LANGUAGE_PACKAGE OFF CACHE BOOL "Add C and C++ support to the Sourcetrail indexer.")
 set(BUILD_JAVA_LANGUAGE_PACKAGE OFF CACHE BOOL "Add Java support to the Sourcetrail indexer.")
 set(BUILD_PYTHON_LANGUAGE_PACKAGE OFF CACHE BOOL "Add Python support to the Sourcetrail indexer.")
+set(DOCKER_BUILD OFF CACHE BOOL "Build runs in Docker")
 
 #set (CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -75,6 +79,13 @@ set(CMAKE_C_STANDARD 99)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-warning-option -fcolor-diagnostics -fvisibility-inlines-hidden")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	ADD_COMPILE_OPTIONS(/MP)
+endif()
+
+# FIXME: necessary to fix build in Docker
+if (DOCKER_BUILD)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")
 endif()
 
 # For debugging the release build on linux
@@ -99,10 +110,10 @@ endif()
 # Boost ------------------------------------------------------------------------
 
 set(Boost_USE_MULTITHREAD ON)
-set(Boost_USE_STATIC_LIBS ON CACHE BOOL)
+set(Boost_USE_STATIC_LIBS ON CACHE BOOL "Set to ON to force the use of the static libraries.")
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-find_package(Boost 1.68 COMPONENTS system program_options filesystem date_time REQUIRED)
+find_package(Boost 1.67 COMPONENTS system program_options filesystem date_time REQUIRED)
 
 
 # Qt ---------------------------------------------------------------------------
@@ -217,10 +228,15 @@ target_include_directories(${LIB_UTILITY_PROJECT_NAME} SYSTEM
 	PUBLIC ${Boost_INCLUDE_DIR}
 )
 
-if(UNIX)
-	target_link_libraries(${LIB_UTILITY_PROJECT_NAME} ${Boost_LIBRARIES} Qt5::Widgets Qt5::Network)
-else()
-	target_link_libraries(${LIB_UTILITY_PROJECT_NAME} ${Boost_LIBRARIES} Qt5::Widgets Qt5::Network Qt5::WinExtras)
+target_link_libraries(${LIB_UTILITY_PROJECT_NAME} ${Boost_LIBRARIES} Qt5::Widgets Qt5::Network)
+
+if (UNIX AND NOT APPLE)
+	find_package(Threads REQUIRED)
+	target_link_libraries(${LIB_UTILITY_PROJECT_NAME} ${CMAKE_DL_LIBS} rt ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
+if (WIN32)
+	target_link_libraries(${LIB_UTILITY_PROJECT_NAME} Qt5::WinExtras)
 endif()
 
 
@@ -252,7 +268,7 @@ target_include_directories(${LIB_PROJECT_NAME} SYSTEM
 	"${EXTERNAL_C_INCLUDE_PATHS}"
 )
 
-target_link_libraries(${LIB_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${LIB_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} ${LIB_GUI_PROJECT_NAME} ${Boost_LIBRARIES})
 
 #configure language package defines
 configure_file(
@@ -289,23 +305,18 @@ if (BUILD_CXX_LANGUAGE_PACKAGE)
 	link_directories(${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 
 	llvm_map_components_to_libnames(REQ_LLVM_LIBS
-		support core libdriver passes
-		x86asmparser x86codegen
-		aarch64asmparser aarch64codegen
-		amdgpuasmparser amdgpucodegen
-		armasmparser armcodegen
-		bpfasmparser bpfcodegen
-		hexagonasmparser hexagoncodegen
-		lanaiasmparser lanaicodegen
-		mipsasmparser mipscodegen
-		msp430asmparser msp430codegen
-		nvptxcodegen
-		powerpcasmparser powerpccodegen
-		sparcasmparser sparccodegen
-		systemzasmparser systemzcodegen
-		webassemblyasmparser webassemblycodegen
-		xcorecodegen
+		support core libdriver passes option
 	)
+	foreach(LLVM_TARGET ${LLVM_TARGETS_TO_BUILD})
+		get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}CodeGen")
+		list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}CodeGen")
+		list(APPEND REQ_LLVM_LIBS "${lib_deps}")
+		get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}AsmParser")
+		if (NOT "${lib_deps}" STREQUAL "")
+			list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}AsmParser")
+			list(APPEND REQ_LLVM_LIBS "${lib_deps}")
+		endif()
+	endforeach()
 
 	set(CLANG_LIBRARIES
 		clangASTMatchers
@@ -432,10 +443,10 @@ add_custom_target(
 
 add_library(${LIB_GUI_PROJECT_NAME} ${LIB_GUI_FILES} ${CMAKE_BINARY_DIR}/src/lib_gui/productVersion.h)
 
-if(UNIX)
-	target_link_libraries(${LIB_GUI_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} Qt5::Widgets Qt5::Network Qt5::Svg)
-else()
-	target_link_libraries(${LIB_GUI_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} Qt5::Widgets Qt5::Network Qt5::Svg Qt5::WinExtras)
+target_link_libraries(${LIB_GUI_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} ${LIB_PROJECT_NAME} Qt5::Widgets Qt5::Network Qt5::Svg)
+
+if (WIN32)
+	target_link_libraries(${LIB_GUI_PROJECT_NAME} Qt5::WinExtras)
 endif()
 
 # command for versioning script
@@ -525,11 +536,11 @@ create_source_groups(${INDEXER_FILES})
 
 target_link_libraries(
 	${APP_INDEXER_NAME}
-	${LIB_PROJECT_NAME}
 	${LIB_GUI_PROJECT_NAME}
 	$<$<BOOL:${BUILD_CXX_LANGUAGE_PACKAGE}>:${LIB_CXX_PROJECT_NAME}>
 	$<$<BOOL:${BUILD_JAVA_LANGUAGE_PACKAGE}>:${LIB_JAVA_PROJECT_NAME}>
 	$<$<BOOL:${BUILD_PYTHON_LANGUAGE_PACKAGE}>:${LIB_PYTHON_PROJECT_NAME}>
+	${LIB_PROJECT_NAME}
 )
 
 if (APPLE)
@@ -606,11 +617,11 @@ create_source_groups(${APP_FILES})
 
 target_link_libraries(
 	${APP_PROJECT_NAME}
-	${LIB_PROJECT_NAME}
 	${LIB_GUI_PROJECT_NAME}
 	$<$<BOOL:${BUILD_CXX_LANGUAGE_PACKAGE}>:${LIB_CXX_PROJECT_NAME}>
 	$<$<BOOL:${BUILD_JAVA_LANGUAGE_PACKAGE}>:${LIB_JAVA_PROJECT_NAME}>
 	$<$<BOOL:${BUILD_PYTHON_LANGUAGE_PACKAGE}>:${LIB_PYTHON_PROJECT_NAME}>
+	${LIB_PROJECT_NAME}
 )
 
 set_property(
@@ -677,8 +688,8 @@ if (APPLE)
 	string(REPLACE ";" " " MACOS_QT_FRAMEWORKS "${MACOS_QT_FRAMEWORKS}")
 
 	set(MACOS_BOOST_DIR "${Boost_INCLUDE_DIR}")
-	STRING(REGEX REPLACE "/lib/cmake/clang" "" MACOS_CLANG_DIR ${Clang_DIR})
-	STRING(REGEX REPLACE "/lib/cmake/Qt5" "" MACOS_QT_DIR ${Qt5_DIR})
+	STRING(REGEX REPLACE "/lib/cmake/clang" "" MACOS_CLANG_DIR "${Clang_DIR}")
+	STRING(REGEX REPLACE "/lib/cmake/Qt5" "" MACOS_QT_DIR "${Qt5_DIR}")
 
 	configure_file(
 		${PROJECT_SOURCE_DIR}/setup/macOS/bundle_install.sh.in
@@ -712,10 +723,10 @@ create_source_groups(${TEST_FILES})
 
 target_link_libraries(
 	${TEST_PROJECT_NAME}
-	${LIB_PROJECT_NAME}
-	${LIB_GUI_PROJECT_NAME}
 	$<$<BOOL:${BUILD_CXX_LANGUAGE_PACKAGE}>:${LIB_CXX_PROJECT_NAME}>
 	$<$<BOOL:${BUILD_JAVA_LANGUAGE_PACKAGE}>:${LIB_JAVA_PROJECT_NAME}>
+	${LIB_PROJECT_NAME}
+	${LIB_GUI_PROJECT_NAME}
 )
 
 set_property(

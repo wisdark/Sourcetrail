@@ -2,13 +2,18 @@
 
 [Sourcetrail](https://www.sourcetrail.com/) is a free and open-source cross-platform source explorer that helps you get productive on unfamiliar source code.
 
-Links
+Windows: [![Build status](https://ci.appveyor.com/api/projects/status/0c258a2opn3loyc2/branch/master?svg=true)](https://ci.appveyor.com/project/mlangkabel/sourcetrail/branch/master)
+
+Linux: [![Build Status](https://travis-ci.org/CoatiSoftware/Sourcetrail.svg?branch=master)](https://travis-ci.org/CoatiSoftware/Sourcetrail)
+
+
+__Links__
 * [Website](https://www.sourcetrail.com/)
 * [Download](https://www.sourcetrail.com/downloads)
 * [Quick Start Guide](https://www.sourcetrail.com/documentation/#QUICKSTARTGUIDE)
 * [Documentation](https://www.sourcetrail.com/documentation)
 * [Changelog](CHANGELOG.md)
-* [Slack Channel](https://join.slack.com/t/sourcetrail/shared_invite/enQtNDc3MjcyOTk5MTc0LTc3NjJiMzI1NDFiOTE2NDZmOWIwMDQzZjA3N2RhOTZlOGMxYmRjOTA1ZGQ3ZDdlNjliZWQ5MDIwOWU1YWZmYzg)
+* [Slack Channel](https://join.slack.com/t/sourcetrail/shared_invite/enQtNDc3MjcyOTk5MTc0LTNhOWZhZjAxZmU1NTM0YjhhMzRhZWE1NTQ2NjQyYjc1ODE2MzViOTliMWUwODBjN2NlMjkwMDc0MjAxMzJkY2E)
 * [Mailing List](https://coati.us12.list-manage.com/subscribe/post?u=3dabab4e475b5ed577d1dcd0f&id=cf7301fc53)
 * [Patreon](https://www.patreon.com/sourcetrail)
 
@@ -23,7 +28,7 @@ Sourcetrail is:
 
 ## Support Sourcetrail via Patreon
 
-The ongoing development and regular software releases are made possible entirely by the support of [these awesome patrons](SPONSORS.md)! If you'd like to join them, please consider [becoming a patron](https://www.patreon.com/sourcetrail) of Souretrail.
+The ongoing development and regular software releases are made possible entirely by the support of [these awesome patrons](SPONSORS.md)! If you'd like to join them, please consider [becoming a patron](https://www.patreon.com/sourcetrail) of Sourcetrail.
 
 ## Using Sourcetrail
 
@@ -51,8 +56,9 @@ If you want to support a certain feature request or you have the same bug that a
 
 ## How to Contribute
 
-Please read and follow the steps in [CONTRIBUTING.md](CONTRIBUTING.md) file.
-
+* Please read and follow the steps in [CONTRIBUTING.md](CONTRIBUTING.md) file. 
+* You may want to look out for issues labeled [good first issue](https://github.com/CoatiSoftware/Sourcetrail/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) to find some initial tasks to tackle.
+* If you are looking for more information about Sourcetrail software development, please refer to our [wiki](https://github.com/CoatiSoftware/Sourcetrail/wiki).
 
 # How to Build
 
@@ -84,7 +90,7 @@ This is optionally used to speed up rebuilds if found in `PATH`.
 
 ### Required dependencies
 
-#### Boost 1.68
+#### Boost 1.67
 For the __msvc__ compiler pre-built binaries can be downloaded from [sourceforge.net/projects/boost/files/boost-binaries](https://sourceforge.net/projects/boost/files/boost-binaries/)
 
 For building on Unix:
@@ -131,10 +137,10 @@ Run Sourcetrail from within the build directory. During execution Sourcetrail ne
 
 ### Required dependencies
 
-#### LLVM/Clang 8.0.1
+#### LLVM/Clang 9.0.0
 
 ##### Windows
-For the __msvc__ compiler, follow [these steps](https://clang.llvm.org/get_started.html) to build the project and make sure that you run the cmake command exactly as described.
+For the __msvc__ compiler, follow [these steps](https://clang.llvm.org/get_started.html) to build the project. Make sure to check out the correct tag and to run the cmake command exactly as described.
 
 ##### Unix
 For Unix, follow this [installation guide](http://clang.llvm.org/docs/LibASTMatchersTutorial.html)
@@ -162,13 +168,21 @@ JAVA_HOME=.../Java/jdk1.x.x_xxx
 
 Also make sure `<jdk_root>/bin` is available in your `PATH` environmen variable.
 
+#### Maven
+Install Maven and make sure both `M2_HOME` and `MAVEN_HOME` environment variables are set:
+```
+M2_HOME=.../apache-maven-x.x.x
+MAVEN_HOME=.../apache-maven-x.x.x
+```
+
+Also make sure `.../apache-maven-x.x.x/bin` is available in your `PATH` environmen variable.
+
 ### Building
 
 Run CMake with these additional options:
 ```
 -DBUILD_JAVA_LANGUAGE_PACKAGE=ON
 ```
-
 
 ## Enable Python Language Support
 
@@ -189,7 +203,11 @@ Run CMake with these additional options:
 
 #### Required Tools
 
+##### Visual Studio
+
 ##### Wix 3.11
+
+##### Wix extension for Visual Studio
 
 ##### WinRAR
 

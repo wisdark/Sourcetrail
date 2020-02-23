@@ -19,20 +19,20 @@
 QtCodeFileSingle::QtCodeFileSingle(QtCodeNavigator* navigator, QWidget* parent)
 	: m_navigator(navigator), m_area(nullptr)
 {
-	setObjectName("code_container");
+	setObjectName(QStringLiteral("code_container"));
 
 	setLayout(new QVBoxLayout(this));
 	layout()->setContentsMargins(0, 0, 0, 0);
 	layout()->setSpacing(0);
 
 	m_titleBar = new QtCodeFileTitleBar(this, false, true);
-	m_titleBar->setObjectName("title_bar_single");
+	m_titleBar->setObjectName(QStringLiteral("title_bar_single"));
 	layout()->addWidget(m_titleBar);
 
 	connect(m_titleBar, &QtCodeFileTitleBar::snippet, this, &QtCodeFileSingle::clickedSnippetButton);
 
 	m_areaWrapper = new QWidget();
-	m_areaWrapper->setObjectName("code_file_single");
+	m_areaWrapper->setObjectName(QStringLiteral("code_file_single"));
 	m_areaWrapper->setSizePolicy(
 		m_areaWrapper->sizePolicy().horizontalPolicy(), QSizePolicy::Expanding);
 	m_areaWrapper->setLayout(new QVBoxLayout());
@@ -115,7 +115,7 @@ bool QtCodeFileSingle::addFile(const CodeFileParams& params, bool useSingleFileC
 		&QtCodeNavigator::scrolled);
 
 	setFileData(file);
-	updateRefCount(params.referenceCount);
+	updateRefCount(static_cast<int>(params.referenceCount));
 
 	if (useSingleFileCache)
 	{
@@ -316,7 +316,7 @@ void QtCodeFileSingle::setFileData(const FileData& file)
 			m_titleBar->setIsIndexed(file.isIndexed);
 		}
 
-		updateRefCount(m_area->getActiveLocationCount());
+		updateRefCount(static_cast<int>(m_area->getActiveLocationCount()));
 
 		titleButton->updateTexts();
 		titleButton->show();

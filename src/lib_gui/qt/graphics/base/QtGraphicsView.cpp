@@ -42,7 +42,8 @@ QtGraphicsView::QtGraphicsView(QWidget* parent)
 	, m_zoomInButtonSpeed(20.0f)
 	, m_zoomOutButtonSpeed(-20.0f)
 {
-	QString modifierName = utility::getOsType() == OS_MAC ? "Cmd" : "Ctrl";
+	QString modifierName = utility::getOsType() == OS_MAC ? QStringLiteral("Cmd")
+														  : QStringLiteral("Ctrl");
 
 	setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
@@ -56,93 +57,101 @@ QtGraphicsView::QtGraphicsView(QWidget* parent)
 	m_zoomLabelTimer = std::make_shared<QTimer>(this);
 	connect(m_zoomLabelTimer.get(), &QTimer::timeout, this, &QtGraphicsView::hideZoomLabel);
 
-	m_openInTabAction = new QAction("Open in New Tab", this);
-	m_openInTabAction->setStatusTip("Open this node in a new tab");
-	m_openInTabAction->setToolTip("Open this node in a new tab");
+	m_openInTabAction = new QAction(QStringLiteral("Open in New Tab"), this);
+	m_openInTabAction->setStatusTip(QStringLiteral("Open this node in a new tab"));
+	m_openInTabAction->setToolTip(QStringLiteral("Open this node in a new tab"));
 	connect(m_openInTabAction, &QAction::triggered, this, &QtGraphicsView::openInTab);
 
-	m_copyNodeNameAction = new QAction("Copy Name", this);
-	m_copyNodeNameAction->setStatusTip("Copies the name of this node to the clipboard");
-	m_copyNodeNameAction->setToolTip("Copies the name of this node to the clipboard");
+	m_copyNodeNameAction = new QAction(QStringLiteral("Copy Name"), this);
+	m_copyNodeNameAction->setStatusTip(
+		QStringLiteral("Copies the name of this node to the clipboard"));
+	m_copyNodeNameAction->setToolTip(
+		QStringLiteral("Copies the name of this node to the clipboard"));
 	connect(m_copyNodeNameAction, &QAction::triggered, this, &QtGraphicsView::copyNodeName);
 
-	m_collapseAction = new QAction("Collapse Node (Shift + Left Click)", this);
-	m_collapseAction->setStatusTip("Hide the unconnected members of the node");
-	m_collapseAction->setToolTip("Hide the unconnected members of the node");
+	m_collapseAction = new QAction(QStringLiteral("Collapse Node (Shift + Left Click)"), this);
+	m_collapseAction->setStatusTip(QStringLiteral("Hide the unconnected members of the node"));
+	m_collapseAction->setToolTip(QStringLiteral("Hide the unconnected members of the node"));
 	connect(m_collapseAction, &QAction::triggered, this, &QtGraphicsView::collapseNode);
 
-	m_expandAction = new QAction("Expand Node (Shift + Left Click)", this);
-	m_expandAction->setStatusTip("Show unconnected members of the node");
-	m_expandAction->setToolTip("Show unconnected members of the node");
+	m_expandAction = new QAction(QStringLiteral("Expand Node (Shift + Left Click)"), this);
+	m_expandAction->setStatusTip(QStringLiteral("Show unconnected members of the node"));
+	m_expandAction->setToolTip(QStringLiteral("Show unconnected members of the node"));
 	connect(m_expandAction, &QAction::triggered, this, &QtGraphicsView::expandNode);
 
-	m_showInIDEAction = new QAction("Show Definition in IDE (Ctrl + Left Click)", this);
+	m_showInIDEAction = new QAction(
+		QStringLiteral("Show Definition in IDE (Ctrl + Left Click)"), this);
 #if defined(Q_OS_MAC)
 	m_showInIDEAction->setText("Show Definition in IDE (Cmd + Left Click)");
 #endif
-	m_showInIDEAction->setStatusTip("Show definition of this symbol in the IDE (via plug-in)");
-	m_showInIDEAction->setToolTip("Show definition of this symbol in the IDE (via plug-in)");
+	m_showInIDEAction->setStatusTip(
+		QStringLiteral("Show definition of this symbol in the IDE (via plug-in)"));
+	m_showInIDEAction->setToolTip(
+		QStringLiteral("Show definition of this symbol in the IDE (via plug-in)"));
 	connect(m_showInIDEAction, &QAction::triggered, this, &QtGraphicsView::showInIDE);
 
-	m_showDefinitionAction = new QAction("Show Definition (Ctrl + Alt + Left Click)", this);
+	m_showDefinitionAction = new QAction(
+		QStringLiteral("Show Definition (Ctrl + Alt + Left Click)"), this);
 #if defined(Q_OS_MAC)
 	m_showDefinitionAction->setText("Show Definition (Cmd + Alt + Left Click)");
 #endif
-	m_showDefinitionAction->setStatusTip("Show definition of this symbol in the code");
-	m_showDefinitionAction->setToolTip("Show definition of this symbol in the code");
+	m_showDefinitionAction->setStatusTip(
+		QStringLiteral("Show definition of this symbol in the code"));
+	m_showDefinitionAction->setToolTip(
+		QStringLiteral("Show definition of this symbol in the code"));
 	connect(m_showDefinitionAction, &QAction::triggered, this, &QtGraphicsView::showDefinition);
 
-	m_hideNodeAction = new QAction("Hide Node (Alt + Left Click)", this);
-	m_hideNodeAction->setStatusTip("Hide the node from this graph");
-	m_hideNodeAction->setToolTip("Hide the node from this graph");
+	m_hideNodeAction = new QAction(QStringLiteral("Hide Node (Alt + Left Click)"), this);
+	m_hideNodeAction->setStatusTip(QStringLiteral("Hide the node from this graph"));
+	m_hideNodeAction->setToolTip(QStringLiteral("Hide the node from this graph"));
 	connect(m_hideNodeAction, &QAction::triggered, this, &QtGraphicsView::hideNode);
 
-	m_hideEdgeAction = new QAction("Hide Edge (Alt + Left Click)", this);
-	m_hideEdgeAction->setStatusTip("Hide the edge from this graph");
-	m_hideEdgeAction->setToolTip("Hide the edge from this graph");
+	m_hideEdgeAction = new QAction(QStringLiteral("Hide Edge (Alt + Left Click)"), this);
+	m_hideEdgeAction->setStatusTip(QStringLiteral("Hide the edge from this graph"));
+	m_hideEdgeAction->setToolTip(QStringLiteral("Hide the edge from this graph"));
 	connect(m_hideEdgeAction, &QAction::triggered, this, &QtGraphicsView::hideEdge);
 
-	m_bookmarkNodeAction = new QAction("Bookmark Node", this);
-	m_bookmarkNodeAction->setStatusTip("Create a bookmark for this node");
-	m_bookmarkNodeAction->setToolTip("Create a bookmark for this node");
+	m_bookmarkNodeAction = new QAction(QStringLiteral("Bookmark Node"), this);
+	m_bookmarkNodeAction->setStatusTip(QStringLiteral("Create a bookmark for this node"));
+	m_bookmarkNodeAction->setToolTip(QStringLiteral("Create a bookmark for this node"));
 	connect(m_bookmarkNodeAction, &QAction::triggered, this, &QtGraphicsView::bookmarkNode);
 
-	m_exportGraphAction = new QAction("Save as Image", this);
-	m_exportGraphAction->setStatusTip("Save this graph as image file");
-	m_exportGraphAction->setToolTip("Save this graph as image file");
+	m_exportGraphAction = new QAction(QStringLiteral("Save as Image"), this);
+	m_exportGraphAction->setStatusTip(QStringLiteral("Save this graph as image file"));
+	m_exportGraphAction->setToolTip(QStringLiteral("Save this graph as image file"));
 	connect(m_exportGraphAction, &QAction::triggered, this, &QtGraphicsView::exportGraph);
 
 	m_zoomState = new QPushButton(this);
-	m_zoomState->setObjectName("zoom_state");
+	m_zoomState->setObjectName(QStringLiteral("zoom_state"));
 	m_zoomState->hide();
 
 	m_zoomInButton = new QtSelfRefreshIconButton(
-		"",
+		QLatin1String(""),
 		ResourcePaths::getGuiPath().concatenate(L"graph_view/images/zoom_in.png"),
 		"search/button",
 		this);
-	m_zoomInButton->setObjectName("zoom_in_button");
+	m_zoomInButton->setObjectName(QStringLiteral("zoom_in_button"));
 	m_zoomInButton->setAutoRepeat(true);
 	m_zoomInButton->setToolTip("zoom in (" + modifierName + " + Mousewheel forward)");
 	connect(m_zoomInButton, &QPushButton::pressed, this, &QtGraphicsView::zoomInPressed);
 
 	m_zoomOutButton = new QtSelfRefreshIconButton(
-		"",
+		QLatin1String(""),
 		ResourcePaths::getGuiPath().concatenate(L"graph_view/images/zoom_out.png"),
 		"search/button",
 		this);
-	m_zoomOutButton->setObjectName("zoom_out_button");
+	m_zoomOutButton->setObjectName(QStringLiteral("zoom_out_button"));
 	m_zoomOutButton->setAutoRepeat(true);
 	m_zoomOutButton->setToolTip("zoom out (" + modifierName + " + Mousewheel back)");
 	connect(m_zoomOutButton, &QPushButton::pressed, this, &QtGraphicsView::zoomOutPressed);
 
 	m_legendButton = new QtSelfRefreshIconButton(
-		"",
+		QLatin1String(""),
 		ResourcePaths::getGuiPath().concatenate(L"graph_view/images/legend.png"),
 		"search/button",
 		this);
-	m_legendButton->setObjectName("legend_button");
-	m_legendButton->setToolTip("show legend");
+	m_legendButton->setObjectName(QStringLiteral("legend_button"));
+	m_legendButton->setToolTip(QStringLiteral("show legend"));
 	connect(m_legendButton, &QPushButton::clicked, this, &QtGraphicsView::legendClicked);
 }
 
@@ -232,11 +241,11 @@ void QtGraphicsView::updateZoom(float delta)
 
 	if (factor <= 0.0f)
 	{
-		factor = 0.000001;
+		factor = 0.000001f;
 	}
 
 	double newZoom = m_zoomFactor * factor;
-	setZoomFactor(qBound(0.1, newZoom, 100.0));
+	setZoomFactor(static_cast<float>(qBound(0.1, newZoom, 100.0)));
 }
 
 void QtGraphicsView::resizeEvent(QResizeEvent* event)
@@ -364,7 +373,7 @@ void QtGraphicsView::wheelEvent(QWheelEvent* event)
 	{
 		if (event->delta() != 0.0f)
 		{
-			updateZoom(event->delta());
+			updateZoom(static_cast<float>(event->delta()));
 		}
 	}
 	else
@@ -527,12 +536,12 @@ void QtGraphicsView::updateTimer()
 
 	if (x != 0)
 	{
-		horizontalScrollBar()->setValue(horizontalScrollBar()->value() + x);
+		horizontalScrollBar()->setValue(static_cast<int>(horizontalScrollBar()->value() + x));
 	}
 
 	if (y != 0)
 	{
-		verticalScrollBar()->setValue(verticalScrollBar()->value() + y);
+		verticalScrollBar()->setValue(static_cast<int>(verticalScrollBar()->value() + y));
 	}
 
 	if (z != 0)
@@ -553,15 +562,16 @@ void QtGraphicsView::openInTab()
 
 void QtGraphicsView::exportGraph()
 {
-	const QString exportNotice = "Exported from Sourcetrail";
+	const QString exportNotice = QStringLiteral("Exported from Sourcetrail");
 	const int margin = 10;
 
-	FilePath filePath(QtFileDialog::showSaveFileDialog(
-						  nullptr,
-						  "Save image",
-						  FilePath(),
-						  "PNG (*.png);;JPEG (*.JPEG);;BMP Files (*.bmp);;SVG (*.svg)")
-						  .toStdWString());
+	FilePath filePath(
+		QtFileDialog::showSaveFileDialog(
+			nullptr,
+			QStringLiteral("Save image"),
+			FilePath(),
+			QStringLiteral("PNG (*.png);;JPEG (*.JPEG);;BMP Files (*.bmp);;SVG (*.svg)"))
+			.toStdWString());
 
 
 	if (filePath.extension() == L".svg")
@@ -571,13 +581,13 @@ void QtGraphicsView::exportGraph()
 		svgGen.setSize(scene()->sceneRect().size().toSize());
 		svgGen.setViewBox(QRect(QPoint(0, 0), scene()->sceneRect().size().toSize()));
 		svgGen.setTitle(QString::fromStdWString(filePath.withoutExtension().fileName()));
-		svgGen.setDescription(QString("Graph exported from Sourcetrail") + QChar(0x00AE));
+		svgGen.setDescription(QStringLiteral("Graph exported from Sourcetrail") + QChar(0x00AE));
 
 		QPainter painter(&svgGen);
 		scene()->render(&painter);
 
 		{
-			QFont font("Fira Sans, sans-serif");
+			QFont font(QStringLiteral("Fira Sans, sans-serif"));
 			font.setPixelSize(8);
 			painter.setFont(font);
 		}

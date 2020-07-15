@@ -138,7 +138,7 @@ bool ApplicationSettings::operator==(const ApplicationSettings& other) const
 		utility::isPermutation<FilePath>(getFrameworkSearchPaths(), other.getFrameworkSearchPaths());
 }
 
-int ApplicationSettings::getMaxRecentProjectsCount() const
+size_t ApplicationSettings::getMaxRecentProjectsCount() const
 {
 	return 7;
 }
@@ -340,10 +340,10 @@ void ApplicationSettings::setVerboseIndexerLoggingEnabled(bool value)
 FilePath ApplicationSettings::getLogDirectoryPath() const
 {
 	return FilePath(getValue<std::wstring>(
-						"application/log_directory_path", UserPaths::getLogPath().getAbsolute().wstr()));
+		"application/log_directory_path", UserPaths::getLogPath().getAbsolute().wstr()));
 }
 
-void ApplicationSettings::setLogDirectoryPath(const FilePath &path)
+void ApplicationSettings::setLogDirectoryPath(const FilePath& path)
 {
 	setValue<std::wstring>("application/log_directory_path", path.wstr());
 }
@@ -666,6 +666,16 @@ bool ApplicationSettings::getSeenErrorHelpMessage() const
 void ApplicationSettings::setSeenErrorHelpMessage(bool seen)
 {
 	setValue<bool>("user/seen_error_help_message", seen);
+}
+
+FilePath ApplicationSettings::getLastFilepickerLocation() const
+{
+	return FilePath(getValue<std::wstring>("user/last_filepicker_location", L""));
+}
+
+void ApplicationSettings::setLastFilepickerLocation(const FilePath& path)
+{
+	setValue<std::wstring>("user/last_filepicker_location", path.wstr());
 }
 
 int ApplicationSettings::getPluginPort() const

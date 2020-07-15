@@ -4,6 +4,7 @@
 #include <QListView>
 #include <QTreeView>
 
+#include "ApplicationSettings.h"
 #include "FilePath.h"
 #include "QtFilesAndDirectoriesDialog.h"
 #include "utilityApp.h"
@@ -39,6 +40,7 @@ QStringList QtFileDialog::getFileNamesAndDirectories(QWidget* parent, const File
 		list = dialog->selectedFiles();
 	}
 
+	saveFilePickerLocation(FilePath(dialog->directory().path().toStdString()));
 	delete dialog;
 
 	return list;
@@ -46,15 +48,20 @@ QStringList QtFileDialog::getFileNamesAndDirectories(QWidget* parent, const File
 
 QString QtFileDialog::getExistingDirectory(QWidget* parent, const QString& caption, const FilePath& dir)
 {
-	return QFileDialog::getExistingDirectory(
+	const QString dirPath = QFileDialog::getExistingDirectory(
 		parent, caption, getDir(QString::fromStdWString(dir.wstr())));
+	saveFilePickerLocation(FilePath(dirPath.toStdString()));
+	return dirPath;
 }
 
 QString QtFileDialog::getOpenFileName(
 	QWidget* parent, const QString& caption, const FilePath& dir, const QString& filter)
 {
-	return QFileDialog::getOpenFileName(
+	const QString filePath = QFileDialog::getOpenFileName(
 		parent, caption, getDir(QString::fromStdWString(dir.wstr())), filter);
+	const FilePath dirPath = FilePath(filePath.toStdString()).getParentDirectory();
+	saveFilePickerLocation(dirPath);
+	return filePath;
 }
 
 QString QtFileDialog::showSaveFileDialog(
@@ -107,14 +114,28 @@ QString QtFileDialog::showSaveFileDialog(
 
 QString QtFileDialog::getDir(QString dir)
 {
-	static bool used = false;
+	if (!dir.isEmpty())
+	{
+		return dir;
+	}
 
-	if (!used && dir.isEmpty())
+	dir = QString::fromStdString(
+		ApplicationSettings::getInstance()->getLastFilepickerLocation().str());
+
+	if (dir.isEmpty())	  // first app launch, settings file absent
 	{
 		dir = QDir::homePath();
 	}
 
-	used = true;
-
 	return dir;
+}
+
+void QtFileDialog::saveFilePickerLocation(const FilePath& path)
+{
+	if (!path.empty())
+	{
+		std::shared_ptr<ApplicationSettings> settings = ApplicationSettings::getInstance();
+		settings->setLastFilepickerLocation(path);
+		settings->save();
+	}
 }

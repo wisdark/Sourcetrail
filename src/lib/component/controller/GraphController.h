@@ -13,6 +13,7 @@
 #include "MessageActivateTrailEdge.h"
 #include "MessageDeactivateEdge.h"
 #include "MessageFlushUpdates.h"
+#include "MessageFocusChanged.h"
 #include "MessageFocusIn.h"
 #include "MessageFocusOut.h"
 #include "MessageGraphNodeBundleSplit.h"
@@ -42,6 +43,7 @@ class GraphController
 	, public MessageListener<MessageActivateTrail>
 	, public MessageListener<MessageActivateTrailEdge>
 	, public MessageListener<MessageDeactivateEdge>
+	, public MessageListener<MessageFocusChanged>
 	, public MessageListener<MessageFlushUpdates>
 	, public MessageListener<MessageFocusIn>
 	, public MessageListener<MessageFocusOut>
@@ -67,6 +69,7 @@ private:
 	void handleMessage(MessageActivateTrail* message) override;
 	void handleMessage(MessageActivateTrailEdge* message) override;
 	void handleMessage(MessageDeactivateEdge* message) override;
+	void handleMessage(MessageFocusChanged* message) override;
 	void handleMessage(MessageFlushUpdates* message) override;
 	void handleMessage(MessageFocusIn* message) override;
 	void handleMessage(MessageFocusOut* message) override;
@@ -170,6 +173,7 @@ private:
 
 	bool m_useBezierEdges = false;
 	bool m_showsLegend = false;
+	Id m_tokenIdToFocus = 0;
 };
 
 #endif	  // GRAPH_CONTROLLER_H

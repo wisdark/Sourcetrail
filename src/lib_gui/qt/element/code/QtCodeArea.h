@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 
+#include "CodeFocusHandler.h"
 #include "QtCodeField.h"
 #include "QtScrollSpeedChangeListener.h"
 
@@ -62,6 +63,7 @@ public:
 	void lineNumberAreaPaintEvent(QPaintEvent* event);
 	int lineNumberDigits() const;
 	int lineNumberAreaWidth() const;
+	int lineHeight() const;
 	void updateLineNumberAreaWidthForDigits(int digits);
 
 	void updateSourceLocations(std::shared_ptr<SourceLocationFile> locationFile);
@@ -71,6 +73,7 @@ public:
 
 	size_t getLineNumberForLocationId(Id locationId) const;
 	std::pair<size_t, size_t> getLineNumbersForLocationId(Id locationId) const;
+	size_t getColumnNumberForLocationId(Id locationId) const;
 
 	Id getLocationIdOfFirstActiveLocation(Id tokenId) const;
 	Id getLocationIdOfFirstActiveScopeLocation(Id tokenId) const;
@@ -86,6 +89,14 @@ public:
 
 	void ensureLocationIdVisible(Id locationId, int parentWidth, bool animated);
 
+	bool setFocus(Id locationId);
+	bool moveFocus(CodeFocusHandler::Direction direction, size_t lineNumber, Id locationId);
+	bool moveFocusToLine(int lineNumber, int targetColumn, bool up);
+	bool moveFocusInLine(size_t lineNumber, Id locationId, bool forward);
+	void activateLocationId(Id locationId, bool fromMouse);
+
+	void copySelection();
+
 protected:
 	virtual void resizeEvent(QResizeEvent* event) override;
 	virtual void mouseReleaseEvent(QMouseEvent* event) override;
@@ -100,7 +111,7 @@ protected:
 
 private slots:
 	void updateLineNumberAreaWidth(int newBlockCount = 0);
-	void updateLineNumberArea(QRect , int);
+	void updateLineNumberArea(QRect, int);
 	void setIDECursorPosition();
 	void setCopyAvailable(bool yes);
 
@@ -110,7 +121,8 @@ private:
 	void dragSelectedText();
 	bool isSelectionPosition(QPoint positionPoint) const;
 
-	void activateAnnotationsOrErrors(const std::vector<const Annotation*>& annotations);
+	void activateAnnotationsOrErrors(const std::vector<const Annotation*>& annotations, bool fromMouse);
+	void focusAnnotation(const Annotation* annotation, bool updateTargetColumn, bool fromMouse);
 
 	void annotateText();
 

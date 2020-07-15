@@ -358,7 +358,7 @@ void QtProjectWizardContentPreferences::populate(QGridLayout* layout, int& row)
 			m_javaPath->setFileFilter(
 				QStringLiteral("JLI or JVM Library (libjli.dylib libjvm.dylib)"));
 			m_javaPath->setPlaceholderText(
-				QStringLiteral("<jre_path>/Contents/Home/jre/lib/jli/libjli.dylib"));
+				QStringLiteral("/Library/Java/JavaVirtualMachines/<jdk_version>/Contents/MacOS/libjli.dylib"));
 			break;
 		case OS_LINUX:
 			m_javaPath->setFileFilter(QStringLiteral("JVM Library (libjvm.so)"));
@@ -651,7 +651,7 @@ void QtProjectWizardContentPreferences::colorSchemeChanged(int index)
 
 void QtProjectWizardContentPreferences::javaPathDetectionClicked()
 {
-	std::vector<FilePath> paths = m_javaPathDetector->getPaths(
+	std::vector<FilePath> paths = m_javaPathDetector->getPathsForDetector(
 		m_javaPathDetectorBox->currentText().toStdString());
 	if (!paths.empty())
 	{
@@ -661,7 +661,7 @@ void QtProjectWizardContentPreferences::javaPathDetectionClicked()
 
 void QtProjectWizardContentPreferences::jreSystemLibraryPathsDetectionClicked()
 {
-	std::vector<FilePath> paths = m_jreSystemLibraryPathsDetector->getPaths(
+	std::vector<FilePath> paths = m_jreSystemLibraryPathsDetector->getPathsForDetector(
 		m_jreSystemLibraryPathsDetectorBox->currentText().toStdString());
 	std::vector<FilePath> oldPaths = m_jreSystemLibraryPaths->getPathsAsAbsolute();
 	m_jreSystemLibraryPaths->setPaths(utility::unique(utility::concat(oldPaths, paths)));
@@ -669,7 +669,7 @@ void QtProjectWizardContentPreferences::jreSystemLibraryPathsDetectionClicked()
 
 void QtProjectWizardContentPreferences::mavenPathDetectionClicked()
 {
-	std::vector<FilePath> paths = m_mavenPathDetector->getPaths(
+	std::vector<FilePath> paths = m_mavenPathDetector->getPathsForDetector(
 		m_mavenPathDetectorBox->currentText().toStdString());
 	if (!paths.empty())
 	{

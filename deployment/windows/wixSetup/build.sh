@@ -22,7 +22,12 @@ VERSION_STRING="${VERSION_STRING:2}"
 echo "installer version is $VERSION_STRING"
 
 PRODUCT_GUID=$(cmd.exe /c "uuidgen")
-echo "$WIN_ARCH product guid is $PRODUCT_GUID"
+if [ -z "$PRODUCT_GUID" ]; then
+	echo "Unable to generate GUID. Make sure to run this script from the Visual Studio command propmt. Aborting now."
+	exit 1
+else
+	echo "$WIN_ARCH product guid is $PRODUCT_GUID"
+fi
 
 rm -rf build
 mkdir build
@@ -34,7 +39,7 @@ echo $"%windir%\system32\msiexec.exe /x {$PRODUCT_GUID}" >$ROOT_DIR/bin/app/data
 
 "devenv.com" CustomActions/CustomActions.sln //build "Release|$X_ARCH"
 
-OUTPUT_DIR=bin/$WIN_ARCH
+OUTPUT_DIR=bin
 
 rm -rf $OUTPUT_DIR
 mkdir -p $OUTPUT_DIR

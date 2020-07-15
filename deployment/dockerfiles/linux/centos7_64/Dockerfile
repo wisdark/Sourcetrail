@@ -55,20 +55,17 @@ make -j8 && \
 make -j8 install && rm -Rf /qt
 
 # LLVM/Clang
-ARG LLVM_VERSION=9.0.0
+ARG LLVM_VERSION=10.0.0
 RUN mkdir -p /llvm && cd /llvm && \
-wget http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz && \
-tar xvf llvm-${LLVM_VERSION}.src.tar.xz && \
-cd llvm-${LLVM_VERSION}.src && \
-cd tools && \
-wget http://llvm.org/releases/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.xz && \
-tar xvf cfe-${LLVM_VERSION}.src.tar.xz && \
+wget https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.tar.xz && \
+tar xvf llvm-project-${LLVM_VERSION}.tar.xz && \
+cd llvm-project-${LLVM_VERSION} && \
 . /opt/rh/python27/enable && \
 . /opt/rh/devtoolset-7/enable && \
-python --version && \
-cd /llvm/llvm-${LLVM_VERSION}.src && mkdir -p build && cd build && \
-cmake .. -DCMAKE_INSTALL_PREFIX=/opt/llvm/ \
+mkdir -p build && cd build && \
+cmake ../llvm -DCMAKE_INSTALL_PREFIX=/opt/llvm/ \
 -DCMAKE_BUILD_TYPE=Release \
+-DLLVM_ENABLE_PROJECTS="clang" \
 -DLLVM_ENABLE_RTTI=ON \
 && make -j8 install && rm -Rf /llvm
 
@@ -86,6 +83,15 @@ tar -xzf boost_${BOOST_VERSION_UNDERSCORE}.tar.gz && cd boost_${BOOST_VERSION_UN
 ./bootstrap.sh --with-libraries=filesystem,program_options,system,date_time --prefix=/opt/boost && \
 ./b2 install cxxstd=14 --link=static --variant=release --threading=multi --runtime-link=static --cxxflags="-std=c++14 -fPIC" && \
 cd .. && rm boost_${BOOST_VERSION_UNDERSCORE}.tar.gz && rm boost_${BOOST_VERSION_UNDERSCORE} -r
+
+# linuxdeployqt
+RUN wget https://github.com/probonopd/linuxdeployqt/releases/download/6/linuxdeployqt-6-x86_64.AppImage && \
+chmod a+x linuxdeployqt-6-x86_64.AppImage && \
+./linuxdeployqt-6-x86_64.AppImage --appimage-extract && \
+cp -r squashfs-root/usr/ /opt/linuxdeployqt && \
+chmod -R 755 /opt/linuxdeployqt && \
+rm linuxdeployqt-6-x86_64.AppImage && rm -rf squashfs-root
+ENV PATH=/opt/linuxdeployqt/bin:${PATH}
 
 #add user
 RUN useradd -u 1000 builder

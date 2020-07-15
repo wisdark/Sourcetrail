@@ -9,7 +9,7 @@ JavaPathDetectorMac::JavaPathDetectorMac(const std::string javaVersion)
 {
 }
 
-std::vector<FilePath> JavaPathDetectorMac::getPaths() const
+std::vector<FilePath> JavaPathDetectorMac::doGetPaths() const
 {
 	std::vector<FilePath> paths;
 	FilePath javaPath;
@@ -18,6 +18,16 @@ std::vector<FilePath> JavaPathDetectorMac::getPaths() const
 	std::string output = utility::executeProcess(command.c_str()).second;
 
 	if (!output.empty())
+	{
+		javaPath = FilePath(utility::trim(output) + "/../MacOS/libjli.dylib").makeCanonical();
+	}
+
+	if (!javaPath.exists() && output.size())
+	{
+		javaPath = FilePath(utility::trim(output) + "/lib/libjli.dylib");
+	}
+
+	if (!javaPath.exists() && output.size())
 	{
 		javaPath = FilePath(utility::trim(output) + "/jre/lib/jli/libjli.dylib");
 	}

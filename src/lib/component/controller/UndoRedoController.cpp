@@ -183,6 +183,19 @@ void UndoRedoController::handleMessage(MessageDeactivateEdge* message)
 	processCommand(command);
 }
 
+void UndoRedoController::handleMessage(MessageFocusChanged* message)
+{
+	if (sameMessageTypeAsLast(message) &&
+		static_cast<MessageFocusChanged*>(lastMessage())->tokenOrLocationId ==
+			message->tokenOrLocationId)
+	{
+		return;
+	}
+
+	Command command(std::make_shared<MessageFocusChanged>(*message), Command::ORDER_VIEW, true);
+	processCommand(command);
+}
+
 void UndoRedoController::handleMessage(MessageGraphNodeBundleSplit* message)
 {
 	Command command(std::make_shared<MessageGraphNodeBundleSplit>(*message), Command::ORDER_ADAPT);
@@ -336,7 +349,7 @@ void UndoRedoController::handleMessage(MessageIndexingFinished* message)
 			MessageActivateTokens* msg = dynamic_cast<MessageActivateTokens*>(command.message.get());
 			if (msg)
 			{
-				if (msg->isAggregation)
+				if (msg->isBundledEdges)
 				{
 					continue;
 				}
@@ -485,7 +498,7 @@ void UndoRedoController::replayCommand(std::list<Command>::iterator it)
 	{
 		MessageActivateTokens* msg = dynamic_cast<MessageActivateTokens*>(m.get());
 
-		if (!msg->isEdge && !msg->isAggregation)
+		if (!msg->isEdge && !msg->isBundledEdges)
 		{
 			std::vector<SearchMatch> matches = msg->getSearchMatches();
 			msg->searchMatches.clear();

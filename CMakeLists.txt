@@ -72,8 +72,9 @@ if(UNIX AND NOT APPLE)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 
 # Settings ---------------------------------------------------------------------
@@ -128,6 +129,31 @@ if (BUILD_CXX_LANGUAGE_PACKAGE)
 
 	if (LLVM_FOUND)
 		message(STATUS "Found LLVM ${LLVM_VERSION}")
+	endif()
+
+	if (UNIX)
+		set(LLVM_CONFIGURATION_TYPES ".")
+	endif()
+
+	set (CLANG_COMPILER_HEADER_SEARCH_PATH "")
+	foreach(LLVM_CONFIGURATION_TYPE ${LLVM_CONFIGURATION_TYPES})
+		if (CLANG_COMPILER_HEADER_SEARCH_PATH STREQUAL "")
+			set (CLANG_COMPILER_HEADER_SEARCH_PATH "${LLVM_BINARY_DIR}/${LLVM_CONFIGURATION_TYPE}/lib/clang/${LLVM_VERSION}/include")
+			message (STATUS "Trying to find Clang compiler headers in '${LLVM_CONFIGURATION_TYPE}' build config in directory '${CLANG_COMPILER_HEADER_SEARCH_PATH}'.")
+			if (EXISTS ${CLANG_COMPILER_HEADER_SEARCH_PATH})
+				message (STATUS "Found headers for '${LLVM_CONFIGURATION_TYPE}' build config.")
+				file(GLOB_RECURSE CLANG_COMPILER_HEADER_PATHS RELATIVE "${CLANG_COMPILER_HEADER_SEARCH_PATH}" "${CLANG_COMPILER_HEADER_SEARCH_PATH}/*")
+				foreach(CLANG_COMPILER_HEADER_PATH ${CLANG_COMPILER_HEADER_PATHS})
+					configure_file("${CLANG_COMPILER_HEADER_SEARCH_PATH}/${CLANG_COMPILER_HEADER_PATH}" "${CMAKE_SOURCE_DIR}/bin/app/data/cxx/include/${CLANG_COMPILER_HEADER_PATH}" COPYONLY)
+				endforeach()
+			else ()
+				set (CLANG_COMPILER_HEADER_SEARCH_PATH "")
+			endif ()
+		endif ()
+	endforeach()
+
+	if (CLANG_COMPILER_HEADER_SEARCH_PATH STREQUAL "")
+		message(FATAL_ERROR "Unable to copy Clang compiler headers from clang build dir.")
 	endif()
 
 endif()
@@ -307,6 +333,9 @@ configure_file(
 
 if (BUILD_CXX_LANGUAGE_PACKAGE)
 
+	set(CAPTURED_CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD})
+	set(CMAKE_CXX_STANDARD 14)
+	
 	add_library(${LIB_CXX_PROJECT_NAME} ${LIB_CXX_FILES})
 
 	create_source_groups(${LIB_CXX_FILES})
@@ -330,45 +359,55 @@ if (BUILD_CXX_LANGUAGE_PACKAGE)
 
 	link_directories(${LLVM_LIBRARY_DIRS} ${CLANG_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 
-	llvm_map_components_to_libnames(REQ_LLVM_LIBS
-		support core libdriver passes option
-	)
-	foreach(LLVM_TARGET ${LLVM_TARGETS_TO_BUILD})
-		get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}CodeGen")
-		list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}CodeGen")
-		list(APPEND REQ_LLVM_LIBS "${lib_deps}")
-		get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}AsmParser")
-		if (NOT "${lib_deps}" STREQUAL "")
-			list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}AsmParser")
-			list(APPEND REQ_LLVM_LIBS "${lib_deps}")
-		endif()
-	endforeach()
+    if(LLVM_LINK_LLVM_DYLIB)
+        set(REQ_LLVM_LIBS LLVM)
+    else()
+        llvm_map_components_to_libnames(REQ_LLVM_LIBS
+            support core libdriver passes option
+        )
+        foreach(LLVM_TARGET ${LLVM_TARGETS_TO_BUILD})
+            get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}CodeGen")
+            list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}CodeGen")
+            list(APPEND REQ_LLVM_LIBS "${lib_deps}")
+            get_property(lib_deps GLOBAL PROPERTY "LLVMBUILD_LIB_DEPS_LLVM${LLVM_TARGET}AsmParser")
+            if (NOT "${lib_deps}" STREQUAL "")
+                list(APPEND REQ_LLVM_LIBS "LLVM${LLVM_TARGET}AsmParser")
+                list(APPEND REQ_LLVM_LIBS "${lib_deps}")
+            endif()
+        endforeach()
+    endif()
 
-	set(CLANG_LIBRARIES
-		clangASTMatchers
-		clangFrontend
-		clangSerialization
-		clangDriver
-		clangTooling
-		clangParse
-		clangSema
-		clangStaticAnalyzerFrontend
-		clangStaticAnalyzerCheckers
-		clangStaticAnalyzerCore
-		clangAnalysis
-		clangRewriteFrontend
-		clangEdit
-		clangAST
-		clangLex
-		clangBasic
-	)
+    if(LLVM_LINK_LLVM_DYLIB)  # Should be CLANG_LINK_CLANG_DYLIB in future LLVM release
+        set(CLANG_LIBRARIES clang-cpp)
+    else()
+        set(CLANG_LIBRARIES
+            clangASTMatchers
+            clangFrontend
+            clangSerialization
+            clangDriver
+            clangTooling
+            clangParse
+            clangSema
+            clangStaticAnalyzerFrontend
+            clangStaticAnalyzerCheckers
+            clangStaticAnalyzerCore
+            clangAnalysis
+            clangRewriteFrontend
+            clangEdit
+            clangAST
+            clangLex
+            clangBasic
+        )
+    endif()
 
 	target_link_libraries(${LIB_CXX_PROJECT_NAME} ${LIB_UTILITY_PROJECT_NAME} ${CLANG_LIBRARIES} ${REQ_LLVM_LIBS})
 
 	if (WIN32)
+		target_compile_definitions(${LIB_CXX_PROJECT_NAME} PRIVATE _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS) # Due to Clang
 		target_link_libraries(${LIB_CXX_PROJECT_NAME} version)
 	endif()
 
+	set(CMAKE_CXX_STANDARD ${CAPTURED_CMAKE_CXX_STANDARD})
 else()
 
 	message(STATUS "Building the Cxx indexer will be skipped. You can enable building this target by setting 'BUILD_CXX_LANGUAGE_PACKAGE' to 'ON'.")
@@ -517,6 +556,11 @@ configure_file(
 
 #configure the versioning file
 configure_file(
+	${CMAKE_SOURCE_DIR}/cmake/version.txt.in
+	${CMAKE_BINARY_DIR}/version.txt
+)
+
+configure_file(
 	${CMAKE_SOURCE_DIR}/cmake/productVersion.h.in
 	${CMAKE_BINARY_DIR}/src/lib_gui/productVersion.h
 )
@@ -623,18 +667,13 @@ if (WIN32)
 	# generate pdb for release build
 	set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
 
+	set_property(
+		TARGET ${APP_PROJECT_NAME}
+			PROPERTY VS_DEBUGGER_WORKING_DIRECTORY
+			"${CMAKE_SOURCE_DIR}/bin/app")
+
 	string(REGEX REPLACE "/" "\\\\" BACKSLASHED_CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR})
 	string(REGEX REPLACE "/" "\\\\" BACKSLASHED_CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR})
-
-	add_custom_command(
-		TARGET ${APP_PROJECT_NAME}
-		POST_BUILD
-		COMMAND  rmdir "${BACKSLASHED_CMAKE_BINARY_DIR}\\Debug\\app\\data" & mklink /d /j "${BACKSLASHED_CMAKE_BINARY_DIR}\\Debug\\app\\data" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\data"
-		COMMAND  rmdir "${BACKSLASHED_CMAKE_BINARY_DIR}\\Debug\\app\\user" & mklink /d /j "${BACKSLASHED_CMAKE_BINARY_DIR}\\Debug\\app\\user" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\user"
-		COMMAND  rmdir "${BACKSLASHED_CMAKE_BINARY_DIR}\\Release\\app\\data" & mklink /d /j "${BACKSLASHED_CMAKE_BINARY_DIR}\\Release\\app\\data" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\data"
-		COMMAND  rmdir "${BACKSLASHED_CMAKE_BINARY_DIR}\\Release\\app\\user" & mklink /d /j "${BACKSLASHED_CMAKE_BINARY_DIR}\\Release\\app\\user" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\user"
-		COMMENT "create symbolic links for data"
-	)
 else ()
 	add_executable(${APP_PROJECT_NAME} ${APP_FILES})
 endif ()
@@ -779,37 +818,36 @@ set_property(
 if (WIN32)
 	set_target_properties(${TEST_PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/bigobj")
 	set_property(
-		TARGET ${TEST_PROJECT_NAME} 
-			PROPERTY VS_DEBUGGER_WORKING_DIRECTORY 
+		TARGET ${TEST_PROJECT_NAME}
+			PROPERTY VS_DEBUGGER_WORKING_DIRECTORY
 			"${CMAKE_SOURCE_DIR}/bin/test")
 endif ()
 
 
-
+# symlinks for data
+message(STATUS "create symlink: "
+	"${CMAKE_SOURCE_DIR}/bin/app/data -> "
+	"${CMAKE_BINARY_DIR}/app/data"
+)
 
 if (UNIX)
-	# symlinks for data
-	message(STATUS "create symlink: "
-		"${CMAKE_SOURCE_DIR}/bin/app/data ->"
-		"${CMAKE_BINARY_DIR}/app/data")
 	execute_process(
 		COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${CMAKE_BINARY_DIR}/app"
 		COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${CMAKE_BINARY_DIR}/test"
-		)
+	)
 	execute_process(
 		COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/bin/app/data" "${CMAKE_BINARY_DIR}/app/data"
 		COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/bin/app/user" "${CMAKE_BINARY_DIR}/app/user"
 		COMMAND "${CMAKE_COMMAND}" "-E" "create_symlink" "${CMAKE_SOURCE_DIR}/bin/test/data" "${CMAKE_BINARY_DIR}/test/data"
-	        )
-
-	if (UNIX AND NOT APPLE)
-		# Create different sized icons
-		message(STATUS "create icons")
-		execute_process(
-			COMMAND "${CMAKE_SOURCE_DIR}/setup/Linux/createIcons.sh" "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}"
-		)
-
-		# Linux package
-		include(cmake/linux_package.cmake)
-	endif ()
+	)
+elseif(WIN32)
+	foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
+		if (EXISTS "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}")
+			execute_process(
+				COMMAND "cmd.exe" "/k" "rmdir" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\app\\data" & "mklink" "/d" "/j" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\app\\data" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\data" & exit
+				COMMAND "cmd.exe" "/k" "rmdir" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\app\\user" & "mklink" "/d" "/j" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\app\\user" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\app\\user" & exit
+				COMMAND "cmd.exe" "/k" "rmdir" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\test\\data" & "mklink" "/d" "/j" "${BACKSLASHED_CMAKE_BINARY_DIR}\\${OUTPUTCONFIG}\\test\\data" "${BACKSLASHED_CMAKE_SOURCE_DIR}\\bin\\test\\data" & exit
+			)
+		endif()
+	endforeach()
 endif ()

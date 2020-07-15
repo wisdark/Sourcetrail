@@ -22,7 +22,7 @@ public:
 
 	bool operator==(const ApplicationSettings& other) const;
 
-	int getMaxRecentProjectsCount() const;
+	size_t getMaxRecentProjectsCount() const;
 
 	// application
 	std::string getFontName() const;
@@ -177,6 +177,9 @@ public:
 
 	bool getSeenErrorHelpMessage() const;
 	void setSeenErrorHelpMessage(bool seen);
+
+	FilePath getLastFilepickerLocation() const;
+	void setLastFilepickerLocation(const FilePath& path);
 
 	// network
 	int getPluginPort() const;

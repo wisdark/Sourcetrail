@@ -25,6 +25,7 @@
 #include "MessageCustomTrailShow.h"
 #include "MessageErrorsHelpMessage.h"
 #include "MessageFind.h"
+#include "MessageFocusView.h"
 #include "MessageHistoryRedo.h"
 #include "MessageHistoryUndo.h"
 #include "MessageIndexingShowDialog.h"
@@ -136,9 +137,6 @@ QtMainWindow::QtMainWindow()
 				.c_str());
 	}
 
-	m_recentProjectAction =
-		new QAction*[ApplicationSettings::getInstance()->getMaxRecentProjectsCount()];
-
 	setupProjectMenu();
 	setupEditMenu();
 	setupViewMenu();
@@ -153,11 +151,6 @@ QtMainWindow::QtMainWindow()
 
 QtMainWindow::~QtMainWindow()
 {
-	if (m_recentProjectAction)
-	{
-		delete[] m_recentProjectAction;
-	}
-
 	for (DockWidget& dockWidget: m_dockWidgets)
 	{
 		dockWidget.toggle->clear();
@@ -469,6 +462,10 @@ void QtMainWindow::keyPressEvent(QKeyEvent* event)
 	case Qt::Key_Space:
 		PRINT_TRACES();
 		break;
+
+	case Qt::Key_Tab:
+		MessageFocusView(MessageFocusView::ViewType::TOGGLE).dispatch();
+		break;
 	}
 }
 
@@ -488,6 +485,12 @@ void QtMainWindow::resizeEvent(QResizeEvent* event)
 {
 	m_windowStack.centerSubWindows();
 	QMainWindow::resizeEvent(event);
+}
+
+bool QtMainWindow::focusNextPrevChild(bool next)
+{
+	// makes tab key available in key press event
+	return false;
 }
 
 void QtMainWindow::about()
@@ -751,21 +754,24 @@ void QtMainWindow::openRecentProject()
 	}
 }
 
-void QtMainWindow::updateRecentProjectMenu()
+void QtMainWindow::updateRecentProjectsMenu()
 {
-	std::vector<FilePath> recentProjects = ApplicationSettings::getInstance()->getRecentProjects();
-	for (int i = 0; i < ApplicationSettings::getInstance()->getMaxRecentProjectsCount(); i++)
+	m_recentProjectsMenu->clear();
+
+	const std::vector<FilePath> recentProjects =
+		ApplicationSettings::getInstance()->getRecentProjects();
+	const size_t recentProjectsCount = ApplicationSettings::getInstance()->getMaxRecentProjectsCount();
+
+	for (size_t i = 0; i < recentProjects.size() && i < recentProjectsCount; ++i)
 	{
-		if ((size_t)i < recentProjects.size() && recentProjects[i].exists())
+		const FilePath& project = recentProjects[i];
+		if (project.exists())
 		{
-			FilePath project = recentProjects[i];
-			m_recentProjectAction[i]->setVisible(true);
-			m_recentProjectAction[i]->setText(QString::fromStdWString(project.fileName()));
-			m_recentProjectAction[i]->setData(QString::fromStdWString(project.wstr()));
-		}
-		else
-		{
-			m_recentProjectAction[i]->setVisible(false);
+			QAction* recentProject = new QAction(this);
+			recentProject->setText(QString::fromStdWString(project.fileName()));
+			recentProject->setData(QString::fromStdWString(project.wstr()));
+			connect(recentProject, &QAction::triggered, this, &QtMainWindow::openRecentProject);
+			m_recentProjectsMenu->addAction(recentProject);
 		}
 	}
 }
@@ -829,20 +835,9 @@ void QtMainWindow::setupProjectMenu()
 	menu->addAction(tr("&New Project..."), this, &QtMainWindow::newProject, QKeySequence::New);
 	menu->addAction(tr("&Open Project..."), this, &QtMainWindow::openProject, QKeySequence::Open);
 
-	QMenu* recentProjectMenu = new QMenu(tr("Recent Projects"));
-	menu->addMenu(recentProjectMenu);
-
-	for (int i = 0; i < ApplicationSettings::getInstance()->getMaxRecentProjectsCount(); ++i)
-	{
-		m_recentProjectAction[i] = new QAction(this);
-		m_recentProjectAction[i]->setVisible(false);
-		connect(
-			m_recentProjectAction[i], &QAction::triggered, this, &QtMainWindow::openRecentProject);
-		recentProjectMenu->addAction(m_recentProjectAction[i]);
-	}
-	updateRecentProjectMenu();
-
-	menu->addMenu(recentProjectMenu);
+	m_recentProjectsMenu = new QMenu(tr("Recent Projects"));
+	menu->addMenu(m_recentProjectsMenu);
+	updateRecentProjectsMenu();
 
 	menu->addSeparator();
 
@@ -905,22 +900,22 @@ void QtMainWindow::setupEditMenu()
 		tr("Next Local Reference"),
 		this,
 		&QtMainWindow::codeLocalReferenceNext,
-		QKeySequence(Qt::CTRL + Qt::Key_E));
+		QKeySequence(Qt::CTRL + Qt::Key_L));
 	menu->addAction(
 		tr("Previous Local Reference"),
 		this,
 		&QtMainWindow::codeLocalReferencePrevious,
-		QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_E));
+		QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_L));
 
 	menu->addSeparator();
 
 	menu->addAction(
-		tr("Custom Trail..."), this, &QtMainWindow::customTrail, QKeySequence(Qt::CTRL + Qt::Key_L));
+		tr("Custom Trail..."), this, &QtMainWindow::customTrail, QKeySequence(Qt::CTRL + Qt::Key_U));
 
 	menu->addSeparator();
 
 	menu->addAction(
-		tr("&To overview"), this, &QtMainWindow::overview, QKeySequence::MoveToStartOfDocument);
+		tr("&To overview"), this, &QtMainWindow::overview, QKeySequence(Qt::CTRL + Qt::Key_Home));
 
 	menu->addSeparator();
 
@@ -997,8 +992,8 @@ void QtMainWindow::setupHistoryMenu()
 		m_historyMenu->clear();
 	}
 
-	m_historyMenu->addAction(tr("Back"), this, &QtMainWindow::undo, QKeySequence::Undo);
-	m_historyMenu->addAction(tr("Forward"), this, &QtMainWindow::redo, QKeySequence::Redo);
+	m_historyMenu->addAction(tr("Back"), this, &QtMainWindow::undo, QKeySequence::Back);
+	m_historyMenu->addAction(tr("Forward"), this, &QtMainWindow::redo, QKeySequence::Forward);
 
 	m_historyMenu->addSeparator();
 

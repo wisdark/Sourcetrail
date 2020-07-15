@@ -95,6 +95,8 @@ protected:
 	virtual void closeEvent(QCloseEvent* event) override;
 	virtual void resizeEvent(QResizeEvent* event) override;
 
+	virtual bool focusNextPrevChild(bool next) override;
+
 public slots:
 	void about();
 	void openSettings();
@@ -145,7 +147,7 @@ public slots:
 	void resetWindowLayout();
 
 	void openRecentProject();
-	void updateRecentProjectMenu();
+	void updateRecentProjectsMenu();
 
 	void toggleView(View* view, bool fromMenu);
 
@@ -192,7 +194,8 @@ private:
 	QMenu* m_bookmarksMenu;
 	std::vector<std::shared_ptr<Bookmark>> m_bookmarks;
 
-	QAction** m_recentProjectAction;
+	QMenu* m_recentProjectsMenu;
+
 	QAction* m_showTitleBarsAction;
 
 	bool m_showDockWidgetTitleBars;

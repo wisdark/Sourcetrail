@@ -215,8 +215,7 @@ QtCustomTrailView::QtCustomTrailView(ViewLayout* viewLayout)
 		for (NodeKind t: nodeKinds)
 		{
 			nodeFilters.push_back(QString::fromStdString(getReadableNodeKindString(t)));
-			nodeColors.push_back(
-				QColor(scheme->getNodeTypeColor(NodeType(t), "fill", ColorScheme::FOCUS).c_str()));
+			nodeColors.push_back(QColor(scheme->getNodeTypeColor(NodeType(t), "fill", true).c_str()));
 		}
 
 		QVBoxLayout* filterLayout = addFilters(
@@ -244,7 +243,7 @@ QtCustomTrailView::QtCustomTrailView(ViewLayout* viewLayout)
 			Edge::EDGE_TYPE_ARGUMENT,
 			Edge::EDGE_INCLUDE,
 			Edge::EDGE_IMPORT,
-			// Edge::EDGE_AGGREGATION,
+			// Edge::EDGE_BUNDLED_EDGES,
 			Edge::EDGE_MACRO_USAGE,
 			Edge::EDGE_ANNOTATION_USAGE
 			// Edge::EDGE_MEMBER // has separate checkbox
@@ -253,7 +252,7 @@ QtCustomTrailView::QtCustomTrailView(ViewLayout* viewLayout)
 		for (Edge::EdgeType t: edgeTypes)
 		{
 			edgeFilters.push_back(QString::fromStdWString(Edge::getReadableTypeString(t)));
-			edgeColors.push_back(QColor(scheme->getEdgeTypeColor(t, ColorScheme::FOCUS).c_str()));
+			edgeColors.push_back(QColor(scheme->getEdgeTypeColor(t).c_str()));
 		}
 
 		QVBoxLayout* filterLayout = addFilters(

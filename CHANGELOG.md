@@ -1,5 +1,58 @@
 ### Changelog
 
+#### 2020.2.43
+released 2020-06-29
+
+* Docs: Explain Linux Tarball uninstall ([#1047](https://github.com/CoatiSoftware/Sourcetrail/issues/1047))
+* Graph: Renamed 'aggregation' edge to 'bundled edges' for more clarity ([#1051](https://github.com/CoatiSoftware/Sourcetrail/issues/1051))
+* Fixed error recording for multi-threaded custom command indexing ([#1049](https://github.com/CoatiSoftware/Sourcetrail/issues/1049))
+* UI: Fixed crash when changing tabs during animation with focus on a child node ([#1046](https://github.com/CoatiSoftware/Sourcetrail/issues/1046))
+* C/C++: Improved help message for source file extensions in project settings ([#1039](https://github.com/CoatiSoftware/Sourcetrail/issues/1039))
+* Python: Updated to SourcetrailPythonIndexer v1.db25.p4 - Record override edges ([#1037](https://github.com/CoatiSoftware/Sourcetrail/issues/1037))
+* Linux: Migrated Linux '.tar.gz' package creation from CPack to linuxdeployqt ([#1034](https://github.com/CoatiSoftware/Sourcetrail/issues/1034))
+* UI: Save last filepicker location ([#802](https://github.com/CoatiSoftware/Sourcetrail/issues/802))
+* C/C++: Updated to LLVM/Clang 10.0.0 ([#965](https://github.com/CoatiSoftware/Sourcetrail/issues/965))
+* Java: Updated macOS Java Path detector and docs to current JDK file structure ([#1031](https://github.com/CoatiSoftware/Sourcetrail/issues/1031))
+* Improved performance of excluded files and directories filtering ([#1030](https://github.com/CoatiSoftware/Sourcetrail/issues/1030))
+* Fix corrupted display of non-ascii characters in about window ([#1013](https://github.com/CoatiSoftware/Sourcetrail/issues/1013))
+* C/C++: Copy Clang compiler headers from Clang build dir via CMake ([#993](https://github.com/CoatiSoftware/Sourcetrail/issues/993))
+* Improved error logging if exception occurred while loading project ([#1004](https://github.com/CoatiSoftware/Sourcetrail/issues/1004))
+* Graph: Add context menu action 'copy to clipboard' ([#999](https://github.com/CoatiSoftware/Sourcetrail/issues/999))
+* C/C++: Extend Compiler Flags help message ([#974](https://github.com/CoatiSoftware/Sourcetrail/issues/974))
+* macOS: Create .dmg release package using HFS+ filesystem to be mountable on older macOS versions ([#619](https://github.com/CoatiSoftware/Sourcetrail/issues/619))
+* Python: Respect "super()" in post processing ([#964](https://github.com/CoatiSoftware/Sourcetrail/issues/964))
+* Less restrictions for FilePath::isValid check on project location ([#959](https://github.com/CoatiSoftware/Sourcetrail/issues/959))
+* Refactored recent projects menu ([#956](https://github.com/CoatiSoftware/Sourcetrail/issues/956))
+* macOs: Updated Info.plist missing values and removed deprecated keys
+* Python: Respect class qualifier in method call for post processing ([#951](https://github.com/CoatiSoftware/Sourcetrail/issues/951))
+
+#### 2020.1.117
+released 2020-03-31
+
+* C/C++: Fixed multiple main declarations not shown as separate symbols when declaring file has same name ([#950](https://github.com/CoatiSoftware/Sourcetrail/issues/950))
+* Linux: Provide AppImage package based on linuxdeployqt (issue [#279](https://github.com/CoatiSoftware/Sourcetrail/issues/279)) ([#945](https://github.com/CoatiSoftware/Sourcetrail/issues/945))
+* Make content of help dialogs selectable (issue [#805](https://github.com/CoatiSoftware/Sourcetrail/issues/935))
+* Added keyboard controls to move and activate focus in graph and code views using WASD/HJKL/Arrows + Enter/E ([#935](https://github.com/CoatiSoftware/Sourcetrail/issues/935)) (issues [#486](https://github.com/CoatiSoftware/Sourcetrail/issues/486), [#327](https://github.com/CoatiSoftware/Sourcetrail/issues/327), [#214](https://github.com/CoatiSoftware/Sourcetrail/issues/214), [#210](https://github.com/CoatiSoftware/Sourcetrail/issues/210))
+* Fixed a crash in shared memory use ([#912](https://github.com/CoatiSoftware/Sourcetrail/issues/912))
+* Discard non-existing paths in automatic path detection ([#930](https://github.com/CoatiSoftware/Sourcetrail/issues/930))
+* Python: Update python indexer to use jedi 0.16.0 ([#929](https://github.com/CoatiSoftware/Sourcetrail/issues/929))
+* Fixed frequent deadlock after loading project from Start Screen (issue [#924](https://github.com/CoatiSoftware/Sourcetrail/issues/924))
+* C/C++: Updated LLVM/Clang config headers to release 9.0.0 ([#922](https://github.com/CoatiSoftware/Sourcetrail/issues/922))
+* Fix crash in update check on premature Qt object deletion ([#920](https://github.com/CoatiSoftware/Sourcetrail/issues/920))
+* C/C++: Fixed an indexer crash ([#911](https://github.com/CoatiSoftware/Sourcetrail/issues/911))
+* Code: fixed font size not changed in single file view (issue [#916](https://github.com/CoatiSoftware/Sourcetrail/issues/916))
+* Mark required contents with asterisk in Source Group setup (issue [#723](https://github.com/CoatiSoftware/Sourcetrail/issues/723)) ([#914](https://github.com/CoatiSoftware/Sourcetrail/issues/914))
+* Removed multiple dialog steps in Source Group setup (issue [#723](https://github.com/CoatiSoftware/Sourcetrail/issues/723)) ([#913](https://github.com/CoatiSoftware/Sourcetrail/issues/913))
+* Handled non-writeable project location (issue [#735](https://github.com/CoatiSoftware/Sourcetrail/issues/735)) ([#906](https://github.com/CoatiSoftware/Sourcetrail/issues/906))
+* Fixed error help dialog not showing up during indexing (issue [#740](https://github.com/CoatiSoftware/Sourcetrail/issues/740)) ([#904](https://github.com/CoatiSoftware/Sourcetrail/issues/904))
+* Allow changing the log file path in preferences (issue [#156](https://github.com/CoatiSoftware/Sourcetrail/issues/156)) ([#900](https://github.com/CoatiSoftware/Sourcetrail/issues/900))
+* Fix crash when project directory contains non-latin character (issue [#899](https://github.com/CoatiSoftware/Sourcetrail/issues/899)) ([#901](https://github.com/CoatiSoftware/Sourcetrail/issues/901))
+* Graph: Fixed endless recursion on cyclic inheritance edges
+* Add 'close tabs to the right' context menu action to tab bar (issue [#822](https://github.com/CoatiSoftware/Sourcetrail/issues/822)) ([#875](https://github.com/CoatiSoftware/Sourcetrail/issues/875))
+* C/C++: Record calls to cxx destructor on delete keyword (issue [#829](https://github.com/CoatiSoftware/Sourcetrail/issues/829)) ([#863](https://github.com/CoatiSoftware/Sourcetrail/issues/863))
+* Retry pre-filling mandatory empty path settings on startup ([#864](https://github.com/CoatiSoftware/Sourcetrail/issues/864))
+* Improved handling of unloadable source group ([#862](https://github.com/CoatiSoftware/Sourcetrail/issues/862))
+
 #### 2019.4.102
 released 2019-12-20
 

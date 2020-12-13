@@ -24,15 +24,15 @@ if (${CMAKE_BINARY_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
 	message(FATAL_ERROR "Please create a separate build directory and call CMake again")
 endif()
 
-# speed up recompiling on unix with ccache
-find_program(CCACHE_PROGRAM ccache)
-if (CCACHE_PROGRAM)
-	message(STATUS "ccache found")
-
-	# Support Unix Makefiles and Ninja
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROGRAM}")
+if(NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER)
+	# speed up recompiling on unix with ccache
+	find_program(CCACHE_PROGRAM ccache)
+	if (CCACHE_PROGRAM)
+		message(STATUS "ccache found")
+		# Support Unix Makefiles and Ninja
+		set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "Compiler launcher for CXX")
+	endif()
 endif()
-
 
 # Variables --------------------------------------------------------------------
 
@@ -138,7 +138,17 @@ if (BUILD_CXX_LANGUAGE_PACKAGE)
 	set (CLANG_COMPILER_HEADER_SEARCH_PATH "")
 	foreach(LLVM_CONFIGURATION_TYPE ${LLVM_CONFIGURATION_TYPES})
 		if (CLANG_COMPILER_HEADER_SEARCH_PATH STREQUAL "")
-			set (CLANG_COMPILER_HEADER_SEARCH_PATH "${LLVM_BINARY_DIR}/${LLVM_CONFIGURATION_TYPE}/lib/clang/${LLVM_VERSION}/include")
+			set (_CLANG_HEADERS_SEARCH_LIST
+				"${LLVM_BINARY_DIR}/${LLVM_CONFIGURATION_TYPE}/lib/clang/${LLVM_VERSION}/include"
+				"${LLVM_BINARY_DIR}/${LLVM_CONFIGURATION_TYPE}/lib64/clang/${LLVM_VERSION}/include"
+			)
+			foreach (_CLANG_HEADER_PATH ${_CLANG_HEADERS_SEARCH_LIST})
+				if (EXISTS ${_CLANG_HEADER_PATH})
+					set (CLANG_COMPILER_HEADER_SEARCH_PATH ${_CLANG_HEADER_PATH})
+					break ()
+				endif ()
+			endforeach ()
+
 			message (STATUS "Trying to find Clang compiler headers in '${LLVM_CONFIGURATION_TYPE}' build config in directory '${CLANG_COMPILER_HEADER_SEARCH_PATH}'.")
 			if (EXISTS ${CLANG_COMPILER_HEADER_SEARCH_PATH})
 				message (STATUS "Found headers for '${LLVM_CONFIGURATION_TYPE}' build config.")
@@ -170,10 +180,12 @@ find_package(Boost 1.67 COMPONENTS system program_options filesystem date_time R
 
 # Qt ---------------------------------------------------------------------------
 
-find_package(Qt5 COMPONENTS Widgets PrintSupport Network Svg REQUIRED)
+set (QT_MIN_VERSION "5.12.0")
+set (QT_MIN_VERSION_HEX 0x051200)
+find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS Widgets PrintSupport Network Svg REQUIRED)
 
 if (WIN32)
-	find_package(Qt5 COMPONENTS WinExtras REQUIRED)
+	find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS WinExtras REQUIRED)
 endif()
 
 if(Qt5Widgets_FOUND)
@@ -183,6 +195,18 @@ if(Qt5Widgets_FOUND)
 	if (Qt5_POSITION_INDEPENDENT_CODE)
 		SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 	endif()
+
+	# The following define makes your compiler emit warnings if you use
+	# any feature of Qt which as been marked as deprecated (the exact warnings
+	# depend on your compiler). Please consult the documentation of the
+	# deprecated API in order to know how to port your code away from it.
+	add_definitions (-DQT_DEPRECATED_WARNINGS)
+
+	# You can also make your code fail to compile if you use deprecated APIs.
+	# In order to do so, uncomment the following line.
+	# You can also select to disable deprecated APIs only up to a certain version of Qt.
+	#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=${QT_MIN_VERSION_HEX}    # disables all the APIs deprecated at or before the specified Qt version
+	add_definitions (-DQT_DISABLE_DEPRECATED_BEFORE=${QT_MIN_VERSION_HEX})
 endif()
 
 

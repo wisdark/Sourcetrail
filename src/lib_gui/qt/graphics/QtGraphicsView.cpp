@@ -37,7 +37,7 @@
 QtGraphicsView::QtGraphicsView(GraphFocusHandler* focusHandler, QWidget* parent)
 	: QGraphicsView(parent)
 	, m_focusHandler(focusHandler)
-	, m_zoomFactor(1.0f)
+	, m_zoomFactor(ApplicationSettings::getInstance()->getGraphZoomLevel())
 	, m_appZoomFactor(1.0f)
 	, m_zoomInButtonSpeed(20.0f)
 	, m_zoomOutButtonSpeed(-20.0f)
@@ -166,6 +166,8 @@ QtGraphicsView::QtGraphicsView(GraphFocusHandler* focusHandler, QWidget* parent)
 	m_legendButton->setObjectName(QStringLiteral("legend_button"));
 	m_legendButton->setToolTip(QStringLiteral("show legend"));
 	connect(m_legendButton, &QPushButton::clicked, this, &QtGraphicsView::legendClicked);
+
+	m_tabId = TabId::currentTab();
 }
 
 float QtGraphicsView::getZoomFactor() const
@@ -183,6 +185,8 @@ void QtGraphicsView::setSceneRect(const QRectF& rect)
 {
 	QGraphicsView::setSceneRect(rect);
 	scene()->setSceneRect(rect);
+	m_imageCached = toQImage();
+	m_tabId = TabId::currentTab();
 }
 
 QtGraphNode* QtGraphicsView::getNodeAtCursorPosition() const
@@ -473,9 +477,9 @@ void QtGraphicsView::wheelEvent(QWheelEvent* event)
 
 	if (zoomDefault != (shiftPressed | ctrlPressed))
 	{
-		if (event->delta() != 0.0f)
+		if (event->angleDelta().y() != 0.0f)
 		{
-			updateZoom(static_cast<float>(event->delta()));
+			updateZoom(static_cast<float>(event->angleDelta().y()));
 		}
 	}
 	else
@@ -724,7 +728,6 @@ void QtGraphicsView::exportGraph()
 			QStringLiteral("PNG (*.png);;JPEG (*.JPEG);;BMP Files (*.bmp);;SVG (*.svg)"))
 			.toStdWString());
 
-
 	if (filePath.extension() == L".svg")
 	{
 		QSvgGenerator svgGen;
@@ -835,6 +838,10 @@ void QtGraphicsView::setZoomFactor(float zoomFactor)
 {
 	m_zoomFactor = zoomFactor;
 
+	std::shared_ptr<ApplicationSettings> settings = ApplicationSettings::getInstance();
+	settings->setGraphZoomLevel(zoomFactor);
+	settings->save();
+
 	m_zoomState->setText(QString::number(int(m_zoomFactor * 100)) + "%");
 	updateTransform();
 
@@ -847,4 +854,12 @@ void QtGraphicsView::updateTransform()
 {
 	float zoomFactor = m_appZoomFactor * m_zoomFactor;
 	setTransform(QTransform(zoomFactor, 0, 0, zoomFactor, 0, 0));
+}
+
+void QtGraphicsView::handleMessage(MessageSaveAsImage* message)
+{
+	if ( (message->getSchedulerId() == getSchedulerId()) && !m_imageCached.isNull() )
+	{
+		m_imageCached.save(message->path);
+	}
 }

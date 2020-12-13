@@ -11,11 +11,11 @@ Sponsors [via Patreon](https://www.patreon.com/sourcetrail).
 ## Super Coatis
 
 * Alexis Jeandet
-* Anthony Marchini
+* Anshu Mathur
+* Chris Morley
 * Konstantin Kirenko
 * Louis St-Amour
-* Mario Lioni
-* Simon Pintarelli
+* William Wold
 
 ## Regular Coatis
 
@@ -23,20 +23,26 @@ Sponsors [via Patreon](https://www.patreon.com/sourcetrail).
 * Andreas
 * Anton
 * Bicakci, Inc.
+* BJ
+* Dio Lee
+* Ferenc Fejes
 * Frederic Simonis
 * Friedrich Hunstock
 * Graydon Hoare
 * IndustrialRobot
 * Jason Stevens
 * John Borland
-* kagusanto
-* kale
+* Kikuchi Takanori
 * MangerDesPates
 * Matěj Týč
+* Max Bruckner
+* Michael F. Schönitzer
 * Nakul Dhotre
-* Nathan
-* Nathan Loofbourrow
+* Neil Horlock
+* Nick Moore
 * Nils Moehrle
+* Pierre Fransson
+* Rémi Cohen-Scali
 * Rui Pires
 * Ryo Koyama
 * Simon
@@ -46,9 +52,9 @@ Sponsors [via Patreon](https://www.patreon.com/sourcetrail).
 * Tomi Joki-Korpela
 * Tony Hong
 * Werner de Groot
+* X. Xu
 * Yacob Cohen-Arazi
 * Yang, Wenbo
-* 勇男 金子
 * 郝晨煜
 
 _Note: This file will be updated at the beginning of each month._

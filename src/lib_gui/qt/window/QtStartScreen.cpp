@@ -82,19 +82,19 @@ void QtRecentProjectButton::handleButtonClick()
 QtStartScreen::QtStartScreen(QWidget* parent)
 	: QtWindow(true, parent)
 	, m_cppIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"icon/cpp_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"icon/cpp_icon.png").wstr()))
 	, m_cIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"icon/c_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"icon/c_icon.png").wstr()))
 	, m_pythonIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"icon/python_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"icon/python_icon.png").wstr()))
 	, m_javaIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"icon/java_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"icon/java_icon.png").wstr()))
 	, m_projectIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"icon/empty_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"icon/empty_icon.png").wstr()))
 	, m_githubIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"startscreen/github_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"startscreen/github_icon.png").wstr()))
 	, m_patreonIcon(QString::fromStdWString(
-		  ResourcePaths::getGuiPath().concatenate(L"startscreen/patreon_icon.png").wstr()))
+		  ResourcePaths::getGuiDirectoryPath().concatenate(L"startscreen/patreon_icon.png").wstr()))
 {
 }
 
@@ -164,15 +164,15 @@ void QtStartScreen::updateButtons()
 		}
 		i++;
 	}
-	setStyleSheet(utility::getStyleSheet(
-					  ResourcePaths::getGuiPath().concatenate(L"startscreen/startscreen.css"))
+	setStyleSheet(utility::getStyleSheet(ResourcePaths::getGuiDirectoryPath().concatenate(
+											 L"startscreen/startscreen.css"))
 					  .c_str());
 }
 
 void QtStartScreen::setupStartScreen()
 {
-	setStyleSheet(utility::getStyleSheet(
-					  ResourcePaths::getGuiPath().concatenate(L"startscreen/startscreen.css"))
+	setStyleSheet(utility::getStyleSheet(ResourcePaths::getGuiDirectoryPath().concatenate(
+											 L"startscreen/startscreen.css"))
 					  .c_str());
 	addLogo();
 
@@ -230,8 +230,21 @@ void QtStartScreen::setupStartScreen()
 			QtNewsWidget* newsWidget = new QtNewsWidget(this);
 			col->addWidget(newsWidget);
 
-			connect(
-				checker, &QtUpdateCheckerWidget::updateReceived, newsWidget, &QtNewsWidget::updateNews);
+			std::function<void()> updateNews = [newsHeader, newsWidget]() {
+				const bool newsAvailable =
+					ApplicationSettings::getInstance()->getAutomaticUpdateCheck() &&
+					!ApplicationSettings::getInstance()->getUpdateNews().empty();
+				newsHeader->setVisible(newsAvailable);
+				newsWidget->setVisible(newsAvailable);
+				if (newsAvailable)
+				{
+					newsWidget->updateNews();
+				}
+			};
+
+			updateNews();
+
+			QObject::connect(checker, &QtUpdateCheckerWidget::updateReceived, updateNews);
 		}
 
 		col->addSpacing(35);
@@ -274,7 +287,8 @@ void QtStartScreen::setupStartScreen()
 			button->setAttribute(Qt::WA_LayoutUsesWidgetRect);	  // fixes layouting on Mac
 			button->setIcon(m_projectIcon);
 			button->setIconSize(QSize(30, 30));
-			button->setMinimumSize(button->fontMetrics().boundingRect(button->text()).width() + 45, 40);
+			button->setMinimumSize(
+				button->fontMetrics().boundingRect(button->text()).width() + 45, 40);
 			button->setObjectName(QStringLiteral("recentButtonMissing"));
 			button->minimumSizeHint();	  // force font loading
 			m_recentProjectsButtons.push_back(button);

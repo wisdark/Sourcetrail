@@ -27,7 +27,7 @@ QtProjectWizardContentPreferences::QtProjectWizardContentPreferences(QtProjectWi
 	, m_screenScaleFactor(nullptr)
 {
 	m_colorSchemePaths = FileSystem::getFilePathsFromDirectory(
-		ResourcePaths::getColorSchemesPath(), {L".xml"});
+		ResourcePaths::getColorSchemesDirectoryPath(), {L".xml"});
 }
 
 QtProjectWizardContentPreferences::~QtProjectWizardContentPreferences()
@@ -251,7 +251,7 @@ void QtProjectWizardContentPreferences::populate(QGridLayout* layout, int& row)
 		QStringLiteral(
 			"<p>Enable additional logs of abstract syntax tree traversal during indexing. This "
 			"information can help "
-			"tracking down crashes that occurr during indexing.</p>"
+			"tracking down crashes that occur during indexing.</p>"
 			"<p><b>Warning</b>: This slows down indexing performance a lot.</p>"),
 		layout,
 		row);
@@ -333,7 +333,7 @@ void QtProjectWizardContentPreferences::populate(QGridLayout* layout, int& row)
 		QStringLiteral("Run C/C++ indexer threads in different process"),
 		QStringLiteral(
 			"<p>Enable C/C++ indexer threads to run in different process.</p>"
-			"<p>This prevents the application from crashing due to unforseen exceptions while "
+			"<p>This prevents the application from crashing due to unforeseen exceptions while "
 			"indexing.</p>"),
 		layout,
 		row);
@@ -357,8 +357,8 @@ void QtProjectWizardContentPreferences::populate(QGridLayout* layout, int& row)
 		case OS_MAC:
 			m_javaPath->setFileFilter(
 				QStringLiteral("JLI or JVM Library (libjli.dylib libjvm.dylib)"));
-			m_javaPath->setPlaceholderText(
-				QStringLiteral("/Library/Java/JavaVirtualMachines/<jdk_version>/Contents/MacOS/libjli.dylib"));
+			m_javaPath->setPlaceholderText(QStringLiteral(
+				"/Library/Java/JavaVirtualMachines/<jdk_version>/Contents/MacOS/libjli.dylib"));
 			break;
 		case OS_LINUX:
 			m_javaPath->setFileFilter(QStringLiteral("JVM Library (libjvm.so)"));
@@ -425,13 +425,13 @@ void QtProjectWizardContentPreferences::populate(QGridLayout* layout, int& row)
 		// maven path
 		m_mavenPath = new QtLocationPicker(this);
 
-		#ifdef WIN32
+#ifdef WIN32
 		m_mavenPath->setFileFilter(QStringLiteral("Maven command (mvn.cmd)"));
 		m_mavenPath->setPlaceholderText(QStringLiteral("<maven_path>/bin/mvn.cmd"));
-		#else
+#else
 		m_mavenPath->setFileFilter(QStringLiteral("Maven command (mvn)"));
 		m_mavenPath->setPlaceholderText(QStringLiteral("<binarypath>/mvn"));
-		#endif
+#endif
 
 		addLabelAndWidget(QStringLiteral("Maven Path"), m_mavenPath, layout, row);
 

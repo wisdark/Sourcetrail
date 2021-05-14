@@ -24,19 +24,19 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 {
 	std::string pythonIndexerVersion = " ";
 	{
-		std::string str = utility::executeProcess(
-				ResourcePaths::getPythonPath().wstr().append(L"SourcetrailPythonIndexer"),
-							  std::vector<std::wstring>{L"--version"},
-							  FilePath(),
-							  5000)
-							  .second;
-		std::regex regex(
-			"v\\d*\\.db\\d*\\.p\\d*");	  // "\\d" matches any digit; "\\." matches the "." character
-		std::smatch matches;
-		std::regex_search(str, matches, regex);
-		if (!matches.empty())
+		utility::ProcessOutput output = utility::executeProcess(
+			ResourcePaths::getPythonIndexerFilePath().wstr(), {L"--version"}, FilePath(), false, 5000);
+		if (output.exitCode == 0)
 		{
-			pythonIndexerVersion = matches.str(0) + " ";
+			std::string str = utility::encodeToUtf8(output.output);
+			std::regex regex("v\\d*\\.db\\d*\\.p\\d*");	   // "\\d" matches any digit; "\\." matches
+														   // the "." character
+			std::smatch matches;
+			std::regex_search(str, matches, regex);
+			if (!matches.empty())
+			{
+				pythonIndexerVersion = matches.str(0) + " ";
+			}
 		}
 	}
 
@@ -124,17 +124,9 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 	m_sourceGroupTypeDescriptions[SOURCE_GROUP_PYTHON_EMPTY] =
 		"<p>Create a new Source Group by defining which Python files will be indexed. This Source "
 		"Group type uses the "
-		"<a "
-		"href=\"https://github.com/CoatiSoftware/"
+		"<a href=\"https://github.com/CoatiSoftware/"
 		"SourcetrailPythonIndexer\">SourcetrailPythonIndexer</a> " +
-		pythonIndexerVersion +
-		"in the "
-		"background.</p>"
-		"<p><b>Note</b>: Python support is still in its <b>beta</b> phase. If you want to update "
-		"the version of the SourcetrailPythonIndexer which is used "
-		"by Sourcetrail, download the latest release package for your operating system from the "
-		"linked repository and completely replace the contents of your "
-		"\"Sourcetrail/data/python\" folder with the contents of the downloaded package.</p>";
+		pythonIndexerVersion + "in the background.</p>";
 #endif	  // BUILD_PYTHON_LANGUAGE_PACKAGE
 	m_sourceGroupTypeDescriptions[SOURCE_GROUP_CUSTOM_COMMAND] =
 		"Create a new Source Group executing a custom command on each source file. "
@@ -174,7 +166,7 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 				selectedLanguage = LanguageType(languageTypeInt);
 			}
 
-			bool hasRecommeded = false;
+			bool hasRecommended = false;
 			for (auto& it: m_buttons)
 			{
 				it.second->setExclusive(false);
@@ -185,7 +177,7 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 
 					if (it.first == selectedLanguage)
 					{
-						hasRecommeded = hasRecommeded | button->property("recommended").toBool();
+						hasRecommended = hasRecommended | button->property("recommended").toBool();
 					}
 				}
 				it.second->setExclusive(true);
@@ -195,7 +187,7 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 			m_title->setText("Source Group Types - " + m_languages->checkedButton()->text());
 
 			m_description->setText(
-				hasRecommeded ? QStringLiteral("<b>* recommended</b>") : QLatin1String(""));
+				hasRecommended ? QStringLiteral("<b>* recommended</b>") : QLatin1String(""));
 		});
 
 	QtFlowLayout* flayout = new QtFlowLayout(10, 0, 0);
@@ -215,7 +207,7 @@ void QtProjectWizardContentSelect::populate(QGridLayout* layout, int& row)
 			QToolButton* b = createSourceGroupButton(
 				utility::insertLineBreaksAtBlankSpaces(name, 15).c_str(),
 				QString::fromStdWString(
-					ResourcePaths::getGuiPath()
+					ResourcePaths::getGuiDirectoryPath()
 						.concatenate(L"icon/" + m_sourceGroupTypeIconName[sourceGroupIt.type] + L".png")
 						.wstr()));
 
